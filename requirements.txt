@@ -1,0 +1,12 @@
+# rag-faiss — runtime dependencies.
+#
+# pyproject.toml is the source of truth; this file is generated from its
+# [project] dependencies for tools and reviewers that expect it.
+#   pip install -e .          installs exactly this
+#   pip install -e ".[dev]"   adds the test dependencies
+
+numpy>=1.24
+
+# Optional extras (not installed by this file):
+#   pip install -e ".[embeddings]"  ->  sentence-transformers>=2.2
+#   pip install -e ".[faiss]"  ->  faiss-cpu>=1.7

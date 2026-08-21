@@ -1,0 +1,20 @@
+{"id": "q01", "query": "what does error XR-4471 mean", "relevant": ["kb-auth::0000"]}
+{"id": "q02", "query": "SSO-8802", "relevant": ["kb-sso::0000"]}
+{"id": "q03", "query": "how do I undo a bad release", "relevant": ["kb-deploy::0000"]}
+{"id": "q04", "query": "when do you send out the monthly bill", "relevant": ["kb-billing::0000"]}
+{"id": "q05", "query": "what happens if I send too many requests", "relevant": ["kb-limits::0000"]}
+{"id": "q06", "query": "how long before unused files are archived", "relevant": ["kb-storage::0000"]}
+{"id": "q07", "query": "does a bulk call count as one request or many", "relevant": ["kb-limits::0000", "kb-limits::0001"]}
+{"id": "q08", "query": "charges when upgrading part way through the month", "relevant": ["kb-billing::0000"]}
+{"id": "q09", "query": "is my data encrypted when stored", "relevant": ["kb-storage::0000"]}
+{"id": "q10", "query": "do schema changes happen before the new version serves users", "relevant": ["kb-deploy::0000", "kb-deploy::0001"]}
+{"id": "q11", "query": "how long does a session stay valid", "relevant": ["kb-auth::0000"]}
+{"id": "q12", "query": "what happens when my endpoint keeps failing", "relevant": ["kb-webhooks::0000"]}
+{"id": "q13", "query": "how do I confirm a callback really came from you", "relevant": ["kb-webhooks::0000", "kb-webhooks::0001"]}
+{"id": "q14", "query": "how quickly do new records show up in search", "relevant": ["kb-search::0000"]}
+{"id": "q15", "query": "how long is the download link good for", "relevant": ["kb-export::0000"]}
+{"id": "q16", "query": "how long do you keep the activity trail", "relevant": ["kb-audit::0000"]}
+{"id": "q17", "query": "which addresses should I permit through the firewall", "relevant": ["kb-network::0000"]}
+{"id": "q18", "query": "maximum number of projects", "relevant": ["kb-quotas::0000"]}
+{"id": "q19", "query": "minimum TLS version", "relevant": ["kb-network::0000"]}
+{"id": "q20", "query": "are reads recorded in the audit trail", "relevant": ["kb-audit::0000"]}

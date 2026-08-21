@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rag-faiss"
+version = "0.1.0"
+description = "A small, measurable RAG pipeline: chunking, embeddings, FAISS, hybrid retrieval, reranking, and retrieval metrics"
+readme = "README.md"
+authors = [{ name = "Luis Manuel Barrios", email = "lmb.office@gmail.com" }]
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+keywords = ["rag", "faiss", "embeddings", "retrieval", "vector-search", "bm25", "evaluation"]
+dependencies = ["numpy>=1.24"]
+
+[project.optional-dependencies]
+faiss = ["faiss-cpu>=1.7"]
+embeddings = ["sentence-transformers>=2.2"]
+dev = ["pytest>=7.0", "faiss-cpu>=1.7"]
+all = ["faiss-cpu>=1.7", "sentence-transformers>=2.2"]
+
+[project.scripts]
+ragkit = "ragkit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
