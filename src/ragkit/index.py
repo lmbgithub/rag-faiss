@@ -12,8 +12,9 @@ cheaper and less error-prone than dividing by norms on every query.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Any, Sequence
+from typing import Any
 
 import numpy as np
 
@@ -73,7 +74,9 @@ class VectorIndex:
         if self.use_faiss:
             self._faiss_index.add(vectors)
         else:
-            self._matrix = vectors if self._matrix is None else np.vstack([self._matrix, vectors])
+            self._matrix = (
+                vectors if self._matrix is None else np.vstack([self._matrix, vectors])
+            )
 
     def search(self, query: np.ndarray, k: int = 5) -> list[Hit]:
         """Return the top-k most similar keys."""
@@ -87,7 +90,7 @@ class VectorIndex:
 
         if self.use_faiss:
             scores, indices = self._faiss_index.search(vector, k)
-            pairs = zip(indices[0].tolist(), scores[0].tolist())
+            pairs = zip(indices[0].tolist(), scores[0].tolist(), strict=True)
         else:
             sims = (self._matrix @ vector.T).ravel()
             top = np.argsort(-sims)[:k]

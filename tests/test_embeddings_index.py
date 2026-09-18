@@ -40,11 +40,13 @@ def test_hashing_embedder_shape_and_norm():
 
 def test_hashing_embedder_ranks_lexical_overlap_higher():
     e = HashingEmbedder(dim=512)
-    v = e.encode([
-        "the patient reported chest pain",
-        "the patient reported chest discomfort",
-        "quarterly revenue exceeded forecast",
-    ])
+    v = e.encode(
+        [
+            "the patient reported chest pain",
+            "the patient reported chest discomfort",
+            "quarterly revenue exceeded forecast",
+        ]
+    )
     assert float(v[0] @ v[1]) > float(v[0] @ v[2])
 
 
@@ -58,7 +60,11 @@ def test_hashing_embedder_rejects_bad_config():
 @pytest.mark.parametrize("use_faiss", [True, False])
 def test_index_search_returns_ranked_hits(use_faiss):
     e = HashingEmbedder(dim=128)
-    texts = ["chest pain and shortness of breath", "quarterly revenue report", "hip fracture after a fall"]
+    texts = [
+        "chest pain and shortness of breath",
+        "quarterly revenue report",
+        "hip fracture after a fall",
+    ]
     index = VectorIndex(128, use_faiss=use_faiss)
     index.add([f"c{i}" for i in range(3)], e.encode(texts))
 

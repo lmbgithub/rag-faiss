@@ -13,8 +13,9 @@ its own source is not auditable.
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 _PARAGRAPH = re.compile(r"\n\s*\n")
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
@@ -160,12 +161,14 @@ def _overlap_tail(buffer: Sequence[str], overlap: int) -> list[str]:
 
 def _hard_split(unit: str, max_chars: int, overlap: int) -> list[str]:
     step = max(1, max_chars - overlap)
-    return [unit[i : i + max_chars].strip() for i in range(0, len(unit), step) if unit[i : i + max_chars].strip()]
+    return [
+        unit[i : i + max_chars].strip()
+        for i in range(0, len(unit), step)
+        if unit[i : i + max_chars].strip()
+    ]
 
 
-def chunk_corpus(
-    documents: Iterable[tuple[str, str]], **kwargs: Any
-) -> list[Chunk]:
+def chunk_corpus(documents: Iterable[tuple[str, str]], **kwargs: Any) -> list[Chunk]:
     """Chunk `(doc_id, text)` pairs into one flat list."""
     out: list[Chunk] = []
     for doc_id, text in documents:

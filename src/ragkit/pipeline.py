@@ -7,8 +7,9 @@ about in the abstract.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from typing import Any, Iterable, Literal, Sequence
+from typing import Any, Literal
 
 from ragkit.chunking import Chunk, chunk_corpus
 from ragkit.embeddings import Embedder, HashingEmbedder

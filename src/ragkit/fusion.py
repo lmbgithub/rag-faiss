@@ -12,7 +12,7 @@ no score normalization to work.
 
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from ragkit.index import Hit
 
@@ -76,7 +76,12 @@ def weighted_score_fusion(
     dense_norm, lexical_norm = normalize(dense), normalize(lexical)
     combined: dict[str, float] = {}
     for key in set(dense_norm) | set(lexical_norm):
-        combined[key] = alpha * dense_norm.get(key, 0.0) + (1 - alpha) * lexical_norm.get(key, 0.0)
+        combined[key] = alpha * dense_norm.get(key, 0.0) + (1 - alpha) * lexical_norm.get(
+            key, 0.0
+        )
 
     ordered = sorted(combined.items(), key=lambda kv: (-kv[1], kv[0]))
-    return [Hit(key=key, score=score, rank=rank) for rank, (key, score) in enumerate(ordered[:k], start=1)]
+    return [
+        Hit(key=key, score=score, rank=rank)
+        for rank, (key, score) in enumerate(ordered[:k], start=1)
+    ]

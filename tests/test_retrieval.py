@@ -1,7 +1,13 @@
 import pytest
 
 from ragkit.evaluate import (
-    Query, evaluate, ndcg_at_k, precision_at_k, recall_at_k, reciprocal_rank, render_comparison,
+    Query,
+    evaluate,
+    ndcg_at_k,
+    precision_at_k,
+    recall_at_k,
+    reciprocal_rank,
+    render_comparison,
 )
 from ragkit.fusion import reciprocal_rank_fusion, weighted_score_fusion
 from ragkit.index import Hit
@@ -159,7 +165,9 @@ def test_ndcg_rewards_higher_placement():
 def test_query_from_dict_normalizes_shapes():
     q = Query.from_dict({"id": "q1", "query": "text", "relevant": "c0"})
     assert q.relevant == frozenset({"c0"})
-    assert Query.from_dict({"id": "q2", "query": "t", "relevant": ["a", "b"]}).relevant == frozenset({"a", "b"})
+    assert Query.from_dict(
+        {"id": "q2", "query": "t", "relevant": ["a", "b"]}
+    ).relevant == frozenset({"a", "b"})
 
 
 def test_evaluate_aggregates_and_flags_total_misses():
@@ -180,8 +188,12 @@ def test_evaluate_requires_at_least_one_k():
 
 
 def test_render_comparison_names_the_best():
-    good = evaluate("good", lambda q, k: HITS[:k], [Query("q1", "x", frozenset({"a"}))], ks=(1, 5))
-    bad = evaluate("bad", lambda q, k: [], [Query("q1", "x", frozenset({"a"}))], ks=(1, 5))
+    good = evaluate(
+        "good", lambda q, k: HITS[:k], [Query("q1", "x", frozenset({"a"}))], ks=(1, 5)
+    )
+    bad = evaluate(
+        "bad", lambda q, k: [], [Query("q1", "x", frozenset({"a"}))], ks=(1, 5)
+    )
     out = render_comparison([good, bad], ks=(1, 5))
     assert "best R@5: good" in out
     assert render_comparison([]) == "no retrievers evaluated"

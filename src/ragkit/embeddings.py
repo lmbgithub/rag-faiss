@@ -16,7 +16,8 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol
 
 import numpy as np
 
@@ -47,8 +48,7 @@ class Embedder(Protocol):
     name: str
     dim: int
 
-    def encode(self, texts: Sequence[str]) -> np.ndarray:
-        ...
+    def encode(self, texts: Sequence[str]) -> np.ndarray: ...
 
 
 class HashingEmbedder:
@@ -72,7 +72,10 @@ class HashingEmbedder:
         tokens = tokenize(text)
         feats = list(tokens)
         padded = f" {' '.join(tokens)} "
-        feats.extend(padded[i : i + self.ngram] for i in range(max(0, len(padded) - self.ngram + 1)))
+        feats.extend(
+            padded[i : i + self.ngram]
+            for i in range(max(0, len(padded) - self.ngram + 1))
+        )
         return feats
 
     def encode(self, texts: Sequence[str]) -> np.ndarray:
@@ -88,7 +91,9 @@ class HashingEmbedder:
 class SentenceTransformerEmbedder:
     """Wraps a sentence-transformers model. The production path."""
 
-    def __init__(self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2") -> None:
+    def __init__(
+        self, model_name: str = "sentence-transformers/all-MiniLM-L6-v2"
+    ) -> None:
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError as exc:  # pragma: no cover - depends on optional extra
@@ -100,13 +105,17 @@ class SentenceTransformerEmbedder:
         self.name = model_name
         # The accessor was renamed across sentence-transformers versions; try the
         # current name first so the package works on both without a version pin.
-        getter = getattr(self._model, "get_embedding_dimension", None) or getattr(
-            self._model, "get_sentence_embedding_dimension"
+        getter = (
+            getattr(self._model, "get_embedding_dimension", None)
+            or self._model.get_sentence_embedding_dimension
         )
         self.dim = int(getter())
 
     def encode(self, texts: Sequence[str]) -> np.ndarray:
         vectors = self._model.encode(
-            list(texts), convert_to_numpy=True, show_progress_bar=False, normalize_embeddings=False
+            list(texts),
+            convert_to_numpy=True,
+            show_progress_bar=False,
+            normalize_embeddings=False,
         )
         return l2_normalize(np.asarray(vectors, dtype=np.float32))

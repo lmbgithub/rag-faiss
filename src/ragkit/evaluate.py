@@ -11,8 +11,9 @@ is the ceiling on everything downstream, so it is measured first and separately.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any
 
 from ragkit.index import Hit
 
@@ -26,7 +27,7 @@ class Query:
     relevant: frozenset[str]
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any]) -> "Query":
+    def from_dict(cls, data: Mapping[str, Any]) -> Query:
         relevant = data.get("relevant") or data.get("relevant_ids") or []
         if isinstance(relevant, str):
             relevant = [relevant]
@@ -70,9 +71,7 @@ def ndcg_at_k(hits: Sequence[Hit], relevant: frozenset[str], k: int) -> float:
 
     if not relevant:
         return 0.0
-    dcg = sum(
-        1.0 / math.log2(hit.rank + 1) for hit in hits[:k] if hit.key in relevant
-    )
+    dcg = sum(1.0 / math.log2(hit.rank + 1) for hit in hits[:k] if hit.key in relevant)
     ideal = sum(1.0 / math.log2(i + 1) for i in range(1, min(len(relevant), k) + 1))
     return dcg / ideal if ideal > 0 else 0.0
 
@@ -94,7 +93,9 @@ class RetrievalReport:
             "retriever": self.name,
             "queries": self.queries,
             "recall": {f"@{k}": round(v, 4) for k, v in sorted(self.recall.items())},
-            "precision": {f"@{k}": round(v, 4) for k, v in sorted(self.precision.items())},
+            "precision": {
+                f"@{k}": round(v, 4) for k, v in sorted(self.precision.items())
+            },
             "mrr": round(self.mrr, 4),
             "ndcg": {f"@{k}": round(v, 4) for k, v in sorted(self.ndcg.items())},
             "zero_recall_queries": list(self.failures),
@@ -118,9 +119,9 @@ def evaluate(
         raise ValueError("at least one k is required")
     max_k = max(ks)
 
-    recall = {k: 0.0 for k in ks}
-    precision = {k: 0.0 for k in ks}
-    ndcg = {k: 0.0 for k in ks}
+    recall = dict.fromkeys(ks, 0.0)
+    precision = dict.fromkeys(ks, 0.0)
+    ndcg = dict.fromkeys(ks, 0.0)
     mrr_total = 0.0
     failures: list[str] = []
 
@@ -146,14 +147,22 @@ def evaluate(
     )
 
 
-def render_comparison(reports: Sequence[RetrievalReport], *, ks: Sequence[int] = (1, 5)) -> str:
+def render_comparison(
+    reports: Sequence[RetrievalReport], *, ks: Sequence[int] = (1, 5)
+) -> str:
     """Render several retrievers side by side."""
     if not reports:
         return "no retrievers evaluated"
 
     columns = [f"R@{k}" for k in ks] + ["MRR", f"nDCG@{max(ks)}"]
     header = f"{'retriever':<22}" + "".join(f"{c:>10}" for c in columns)
-    lines = ["=" * len(header), "RETRIEVAL COMPARISON", "=" * len(header), header, "-" * len(header)]
+    lines = [
+        "=" * len(header),
+        "RETRIEVAL COMPARISON",
+        "=" * len(header),
+        header,
+        "-" * len(header),
+    ]
 
     for report in reports:
         row = f"{report.name:<22}"
@@ -166,5 +175,8 @@ def render_comparison(reports: Sequence[RetrievalReport], *, ks: Sequence[int] =
     lines.append("-" * len(header))
     lines.append(f"best R@{max(ks)}: {best.name}")
     if best.failures:
-        lines.append(f"still zero-recall on {len(best.failures)} query/queries: {', '.join(best.failures[:5])}")
+        lines.append(
+            f"still zero-recall on {len(best.failures)} query/queries: "
+            f"{', '.join(best.failures[:5])}"
+        )
     return "\n".join(lines)

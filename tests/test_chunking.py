@@ -1,3 +1,5 @@
+from itertools import pairwise
+
 import pytest
 
 from ragkit.chunking import Chunk, chunk_corpus, chunk_document, split_sentences
@@ -38,10 +40,7 @@ def test_overlap_carries_context_between_chunks():
     chunks = chunk_document(TEXT, "d", max_chars=100, overlap=40)
     assert len(chunks) > 1
     # Some later chunk repeats content from its predecessor.
-    assert any(
-        set(a.text.split()) & set(b.text.split())
-        for a, b in zip(chunks, chunks[1:])
-    )
+    assert any(set(a.text.split()) & set(b.text.split()) for a, b in pairwise(chunks))
 
 
 def test_oversized_sentence_is_hard_split():

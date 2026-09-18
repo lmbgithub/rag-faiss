@@ -5,8 +5,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Sequence
 
 from ragkit import __version__
 from ragkit.embeddings import HashingEmbedder
@@ -51,7 +51,10 @@ def build_pipeline(
     rows = load_jsonl(docs_path)
     pipeline = RagPipeline(embedder, max_chars=max_chars, overlap=overlap)
     pipeline.add_documents(
-        [(str(r.get("id", f"doc-{i:04d}")), str(r.get("text", ""))) for i, r in enumerate(rows)]
+        [
+            (str(r.get("id", f"doc-{i:04d}")), str(r.get("text", "")))
+            for i, r in enumerate(rows)
+        ]
     )
     return pipeline
 
@@ -63,24 +66,32 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"rag-faiss {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    common = {"--embedder": "hashing"}
-
     q = sub.add_parser("query", help="retrieve passages for a query")
     q.add_argument("docs", help="JSONL corpus with 'id' and 'text'")
     q.add_argument("query", help="the query text")
     q.add_argument("-k", type=int, default=5)
     q.add_argument("--mode", choices=MODES, default="hybrid")
-    q.add_argument("--embedder", default="hashing", help="'hashing' or a sentence-transformers model name")
-    q.add_argument("--context", action="store_true", help="print the assembled cited context block")
+    q.add_argument(
+        "--embedder",
+        default="hashing",
+        help="'hashing' or a sentence-transformers model name",
+    )
+    q.add_argument(
+        "--context", action="store_true", help="print the assembled cited context block"
+    )
     q.add_argument("--max-chars", type=int, default=400, help="chunk size budget")
     q.add_argument("--overlap", type=int, default=80, help="chunk overlap")
 
-    e = sub.add_parser("evaluate", help="compare retrieval modes against labelled queries")
+    e = sub.add_parser(
+        "evaluate", help="compare retrieval modes against labelled queries"
+    )
     e.add_argument("docs", help="JSONL corpus with 'id' and 'text'")
     e.add_argument("queries", help="JSONL with 'id', 'query', and 'relevant' chunk ids")
     e.add_argument("--embedder", default="hashing")
     e.add_argument("--modes", nargs="+", choices=MODES, default=list(MODES))
-    e.add_argument("--min-recall", type=float, default=None, help="fail if best R@5 is below this")
+    e.add_argument(
+        "--min-recall", type=float, default=None, help="fail if best R@5 is below this"
+    )
     e.add_argument("--max-chars", type=int, default=400, help="chunk size budget")
     e.add_argument("--overlap", type=int, default=80, help="chunk overlap")
     e.add_argument("--json", dest="json_out")
@@ -90,8 +101,13 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def _cmd_query(args: argparse.Namespace) -> int:
-    pipeline = build_pipeline(args.docs, args.embedder, max_chars=args.max_chars, overlap=args.overlap)
-    print(f"corpus: {len(pipeline)} chunks | index: {pipeline.backend} | embedder: {pipeline.embedder.name}")
+    pipeline = build_pipeline(
+        args.docs, args.embedder, max_chars=args.max_chars, overlap=args.overlap
+    )
+    print(
+        f"corpus: {len(pipeline)} chunks | index: {pipeline.backend} | "
+        f"embedder: {pipeline.embedder.name}"
+    )
     print(f"mode: {args.mode}\n")
 
     if args.context:
@@ -108,10 +124,15 @@ def _cmd_query(args: argparse.Namespace) -> int:
 
 
 def _cmd_evaluate(args: argparse.Namespace) -> int:
-    pipeline = build_pipeline(args.docs, args.embedder, max_chars=args.max_chars, overlap=args.overlap)
+    pipeline = build_pipeline(
+        args.docs, args.embedder, max_chars=args.max_chars, overlap=args.overlap
+    )
     queries = [Query.from_dict(r) for r in load_jsonl(args.queries)]
 
-    print(f"corpus: {len(pipeline)} chunks | index: {pipeline.backend} | embedder: {pipeline.embedder.name}")
+    print(
+        f"corpus: {len(pipeline)} chunks | index: {pipeline.backend} | "
+        f"embedder: {pipeline.embedder.name}"
+    )
     print(f"queries: {len(queries)}\n")
 
     reports = [
@@ -129,7 +150,10 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
     if args.min_recall is not None:
         best = max(r.recall[5] for r in reports)
         passed = best >= args.min_recall
-        print(f"\ngate: best R@5 {best:.1%} vs threshold {args.min_recall:.1%} -> {'PASS' if passed else 'FAIL'}")
+        print(
+            f"\ngate: best R@5 {best:.1%} vs threshold {args.min_recall:.1%} -> "
+            f"{'PASS' if passed else 'FAIL'}"
+        )
         return EXIT_OK if passed else EXIT_BELOW_THRESHOLD
     return EXIT_OK
 
@@ -145,7 +169,10 @@ def _cmd_info(_: argparse.Namespace) -> int:
     print(f"rag-faiss {__version__}")
     print(f"faiss available:                 {FAISS_AVAILABLE}")
     print(f"sentence-transformers available: {st}")
-    print(f"index backend in use:            {'faiss.IndexFlatIP' if FAISS_AVAILABLE else 'numpy.bruteforce'}")
+    print(
+        f"index backend in use:            "
+        f"{'faiss.IndexFlatIP' if FAISS_AVAILABLE else 'numpy.bruteforce'}"
+    )
     return EXIT_OK
 
 

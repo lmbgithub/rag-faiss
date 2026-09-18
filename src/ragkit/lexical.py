@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import math
 from collections import Counter
-from typing import Sequence
+from collections.abc import Sequence
 
 from ragkit.embeddings import tokenize
 from ragkit.index import Hit
@@ -47,7 +47,7 @@ class BM25:
     def add(self, keys: Sequence[str], texts: Sequence[str]) -> None:
         if len(keys) != len(texts):
             raise ValueError("keys and texts must align")
-        for key, text in zip(keys, texts):
+        for key, text in zip(keys, texts, strict=True):
             tokens = tokenize(text)
             counts = Counter(tokens)
             self._keys.append(key)
@@ -89,7 +89,12 @@ class BM25:
                 freq = counts.get(term, 0)
                 if not freq:
                     continue
-                norm = 1.0 - self.b + self.b * (self._lengths[i] / self._avg_len if self._avg_len else 1.0)
+                norm = (
+                    1.0
+                    - self.b
+                    + self.b
+                    * (self._lengths[i] / self._avg_len if self._avg_len else 1.0)
+                )
                 scores[i] += idf * (freq * (self.k1 + 1.0)) / (freq + self.k1 * norm)
 
         ranked = sorted(

@@ -8,12 +8,21 @@ from ragkit.embeddings import HashingEmbedder
 from ragkit.pipeline import RagPipeline
 
 DOCS = [
-    ("clinical", "The patient reported chest pain radiating to the left arm at six in the morning. "
-                 "Vital signs were stable with blood pressure of one thirty over eighty."),
-    ("finance", "Quarterly revenue exceeded the forecast by twelve percent. "
-                "Operating margin improved across all three business units."),
-    ("support", "Error code XR-4471 indicates a failed authentication handshake. "
-                "Rotate the client secret and retry the connection."),
+    (
+        "clinical",
+        "The patient reported chest pain radiating to the left arm at six in the morning. "
+        "Vital signs were stable with blood pressure of one thirty over eighty.",
+    ),
+    (
+        "finance",
+        "Quarterly revenue exceeded the forecast by twelve percent. "
+        "Operating margin improved across all three business units.",
+    ),
+    (
+        "support",
+        "Error code XR-4471 indicates a failed authentication handshake. "
+        "Rotate the client secret and retry the connection.",
+    ),
 ]
 
 
@@ -104,12 +113,27 @@ def test_cli_evaluate_and_gate(corpus_file, tmp_path, capsys):
     p.add_documents(DOCS)
     clinical = next(k for k in p.chunks if k.startswith("clinical"))
 
-    queries = write(tmp_path / "q.jsonl", [
-        {"id": "q1", "query": "chest pain left arm", "relevant": [clinical]},
-    ])
+    queries = write(
+        tmp_path / "q.jsonl",
+        [
+            {"id": "q1", "query": "chest pain left arm", "relevant": [clinical]},
+        ],
+    )
     out_json = tmp_path / "r.json"
-    assert main(["evaluate", str(corpus_file), str(queries), "--json", str(out_json),
-                 "--min-recall", "0.5"]) == EXIT_OK
+    assert (
+        main(
+            [
+                "evaluate",
+                str(corpus_file),
+                str(queries),
+                "--json",
+                str(out_json),
+                "--min-recall",
+                "0.5",
+            ]
+        )
+        == EXIT_OK
+    )
     out = capsys.readouterr().out
     assert "RETRIEVAL COMPARISON" in out
     assert "PASS" in out
@@ -117,10 +141,16 @@ def test_cli_evaluate_and_gate(corpus_file, tmp_path, capsys):
 
 
 def test_cli_evaluate_gate_fails_on_impossible_labels(corpus_file, tmp_path, capsys):
-    queries = write(tmp_path / "q.jsonl", [
-        {"id": "q1", "query": "chest pain", "relevant": ["does-not-exist"]},
-    ])
-    assert main(["evaluate", str(corpus_file), str(queries), "--min-recall", "0.9"]) == EXIT_BELOW_THRESHOLD
+    queries = write(
+        tmp_path / "q.jsonl",
+        [
+            {"id": "q1", "query": "chest pain", "relevant": ["does-not-exist"]},
+        ],
+    )
+    assert (
+        main(["evaluate", str(corpus_file), str(queries), "--min-recall", "0.9"])
+        == EXIT_BELOW_THRESHOLD
+    )
     assert "FAIL" in capsys.readouterr().out
 
 

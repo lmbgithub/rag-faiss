@@ -1,4 +1,7 @@
-"""A small, measurable RAG pipeline: chunking, embeddings, FAISS, hybrid retrieval, metrics."""
+"""A small, measurable RAG pipeline.
+
+Chunking, embeddings, FAISS, hybrid retrieval and the metrics to judge them.
+"""
 
 from ragkit.chunking import Chunk, chunk_corpus, chunk_document
 from ragkit.embeddings import (
@@ -25,11 +28,28 @@ from ragkit.pipeline import Passage, RagPipeline
 __version__ = "0.1.0"
 
 __all__ = [
-    "Chunk", "chunk_corpus", "chunk_document",
-    "Embedder", "HashingEmbedder", "SentenceTransformerEmbedder", "l2_normalize",
-    "Query", "RetrievalReport", "evaluate", "ndcg_at_k", "precision_at_k",
-    "recall_at_k", "reciprocal_rank", "render_comparison",
-    "reciprocal_rank_fusion", "weighted_score_fusion",
-    "FAISS_AVAILABLE", "Hit", "VectorIndex", "BM25",
-    "Passage", "RagPipeline", "__version__",
+    "BM25",
+    "FAISS_AVAILABLE",
+    "Chunk",
+    "Embedder",
+    "HashingEmbedder",
+    "Hit",
+    "Passage",
+    "Query",
+    "RagPipeline",
+    "RetrievalReport",
+    "SentenceTransformerEmbedder",
+    "VectorIndex",
+    "__version__",
+    "chunk_corpus",
+    "chunk_document",
+    "evaluate",
+    "l2_normalize",
+    "ndcg_at_k",
+    "precision_at_k",
+    "recall_at_k",
+    "reciprocal_rank",
+    "reciprocal_rank_fusion",
+    "render_comparison",
+    "weighted_score_fusion",
 ]
