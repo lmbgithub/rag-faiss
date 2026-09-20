@@ -1,12 +1,15 @@
 # rag-faiss
 
-A small RAG retrieval pipeline you can actually measure: chunking, embeddings,
-FAISS, BM25, hybrid fusion, and the retrieval metrics that tell you whether any
-of it is working.
+A compact RAG retrieval pipeline built so that every stage can be measured:
+chunking, embeddings, FAISS, BM25, hybrid fusion, and the retrieval metrics that
+show whether the pipeline is actually helping.
 
-Runs on clone with no model download and no network. FAISS and
-sentence-transformers are optional extras, and the package degrades to an exact
-NumPy index when FAISS is absent.
+The intention is to make retrieval quality an experiment rather than an
+assumption, so a change to chunk size or fusion weight can be judged on numbers.
+
+It runs on clone with no model download and no network. FAISS and
+sentence-transformers are optional extras; without them the package falls back
+to an exact NumPy index.
 
 ```
 $ ragkit evaluate examples/corpus.jsonl examples/queries.jsonl
