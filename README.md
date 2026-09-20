@@ -1,15 +1,10 @@
 # rag-faiss
 
-A compact RAG retrieval pipeline built so that every stage can be measured:
-chunking, embeddings, FAISS, BM25, hybrid fusion, and the retrieval metrics that
-show whether the pipeline is actually helping.
+A compact RAG retrieval pipeline built so that every stage can be measured: chunking, embeddings, FAISS, BM25, hybrid fusion, and the retrieval metrics that show whether the pipeline is actually helping.
 
-The intention is to make retrieval quality an experiment rather than an
-assumption, so a change to chunk size or fusion weight can be judged on numbers.
+The intention is to make retrieval quality an experiment rather than an assumption, so a change to chunk size or fusion weight can be judged on numbers.
 
-It runs on clone with no model download and no network. FAISS and
-sentence-transformers are optional extras; without them the package falls back
-to an exact NumPy index.
+It runs on clone with no model download and no network. FAISS and sentence-transformers are optional extras; without them the package falls back to an exact NumPy index.
 
 ```
 $ ragkit evaluate examples/corpus.jsonl examples/queries.jsonl
@@ -32,14 +27,9 @@ still zero-recall on 1 query/queries: q16
 
 ## Why this exists
 
-Most RAG systems are evaluated by reading a few generated answers and deciding
-they look reasonable. That measures the generator, not the retriever, and it
-cannot distinguish _the model wrote a plausible answer_ from _the right chunk
-was actually retrieved_.
+Most RAG systems are evaluated by reading a few generated answers and deciding they look reasonable. That measures the generator, not the retriever, and it cannot distinguish _the model wrote a plausible answer_ from _the right chunk was actually retrieved_.
 
-If the correct chunk is not in the context window, no prompt can fix it.
-Retrieval recall is the ceiling on everything downstream, so this package
-measures it first and separately.
+If the correct chunk is not in the context window, no prompt can fix it. Retrieval recall is the ceiling on everything downstream, so this package measures it first and separately.
 
 ## The result that makes the point
 
@@ -58,20 +48,11 @@ Run the same corpus and queries twice, changing only the embedder:
 | hybrid (RRF)                    | 75.0%     | 85.0%      | 0.863     | 0.832     |
 | hybrid (weighted)               | 65.0%     | 95.0%      | 0.817     | 0.840     |
 
-With a weak embedder, hybrid retrieval is the clear winner — the usual advice.
-With a real semantic embedder, **hybrid makes things worse**: dense alone hits
-100% R@5 and fusing it with a much weaker BM25 drags it down to 85%.
+With a weak embedder, hybrid retrieval is the clear winner — the usual advice. With a real semantic embedder, **hybrid makes things worse**: dense alone hits 100% R@5 and fusing it with a much weaker BM25 drags it down to 85%.
 
-That is the whole argument for having an evaluation harness. Rank fusion helps
-when the two retrievers are of comparable strength and hurts when one dominates,
-and no blog post can tell you which case you are in — only a measurement on your
-corpus can. The default in this package is hybrid because it is the safer choice
-under an unknown embedder, and `ragkit evaluate` exists so you do not have to
-keep that default on faith.
+That is the whole argument for having an evaluation harness. Rank fusion helps when the two retrievers are of comparable strength and hurts when one dominates, and no blog post can tell you which case you are in — only a measurement on your corpus can. The default in this package is hybrid because it is the safer choice under an unknown embedder, and `ragkit evaluate` exists so you do not have to keep that default on faith.
 
-(Both runs use the same 12-document synthetic knowledge base and the same 20
-labelled queries in `examples/`. Reproduce with `--embedder
-sentence-transformers/all-MiniLM-L6-v2`.)
+(Both runs use the same 12-document synthetic knowledge base and the same 20 labelled queries in `examples/`. Reproduce with `--embedder sentence-transformers/all-MiniLM-L6-v2`.)
 
 ## Install
 
@@ -102,8 +83,7 @@ ragkit query examples/corpus.jsonl "XR-4471" --mode lexical
 ragkit query examples/corpus.jsonl "is my data encrypted" --context
 ```
 
-`--context` prints the assembled, cited block exactly as a model would receive
-it:
+`--context` prints the assembled, cited block exactly as a model would receive it:
 
 ```
 [1] (kb-storage:0-198)
@@ -135,39 +115,19 @@ for p in passages:
 
 ## Design notes
 
-**Chunks carry their source and character offsets.** A retrieved answer can
-always be traced to an exact span of an exact document. A RAG system that cannot
-cite its own source is not auditable, and `build_context` returns the passages it
-used so you can always report exactly what the model was shown.
+**Chunks carry their source and character offsets.** A retrieved answer can always be traced to an exact span of an exact document. A RAG system that cannot cite its own source is not auditable, and `build_context` returns the passages it used so you can always report exactly what the model was shown.
 
-**Chunking splits on natural boundaries.** Paragraphs first, then sentences, and
-only a hard character cut when a single sentence exceeds the budget. Half a
-clause has no clear meaning to average over, so it embeds poorly.
+**Chunking splits on natural boundaries.** Paragraphs first, then sentences, and only a hard character cut when a single sentence exceeds the budget. Half a clause has no clear meaning to average over, so it embeds poorly.
 
-**Vectors are normalized once at ingest.** Inner product over unit vectors _is_
-cosine similarity, so `IndexFlatIP` returns cosine directly — cheaper and less
-error-prone than dividing by norms on every query.
+**Vectors are normalized once at ingest.** Inner product over unit vectors _is_ cosine similarity, so `IndexFlatIP` returns cosine directly — cheaper and less error-prone than dividing by norms on every query.
 
-**BM25 exists for the queries embeddings lose.** Product codes, error
-identifiers, drug names, version numbers — the terms users paste verbatim are
-exactly the ones an embedder never saw in training. In the table above, dense
-retrieval with the hashing embedder misses `XR-4471` and `SSO-8802`; BM25 finds
-them first every time.
+**BM25 exists for the queries embeddings lose.** Product codes, error identifiers, drug names, version numbers — the terms users paste verbatim are exactly the ones an embedder never saw in training. In the table above, dense retrieval with the hashing embedder misses `XR-4471` and `SSO-8802`; BM25 finds them first every time.
 
-**Fusion combines ranks, not scores.** BM25 scores are unbounded and
-corpus-dependent; cosine sits in [-1, 1]. Any weighted sum silently becomes
-"whatever BM25 said" on some corpora and "whatever the embedder said" on others,
-with no warning either way. Reciprocal Rank Fusion combines ranks, which are
-comparable by construction. `weighted_score_fusion` is included so the harness
-can show you which one wins on your data.
+**Fusion combines ranks, not scores.** BM25 scores are unbounded and corpus-dependent; cosine sits in [-1, 1]. Any weighted sum silently becomes "whatever BM25 said" on some corpora and "whatever the embedder said" on others, with no warning either way. Reciprocal Rank Fusion combines ranks, which are comparable by construction. `weighted_score_fusion` is included so the harness can show you which one wins on your data.
 
-**Hybrid modes over-fetch before fusing.** An item ranked 8th by one retriever
-and 2nd by the other should be able to win, and it cannot if both lists were
-already truncated to k.
+**Hybrid modes over-fetch before fusing.** An item ranked 8th by one retriever and 2nd by the other should be able to win, and it cannot if both lists were already truncated to k.
 
-**The NumPy fallback is exact, not approximate.** `IndexFlatIP` is a brute-force
-exact index too, so both paths return identical results — verified by a test.
-CI runs the full suite with FAISS absent.
+**The NumPy fallback is exact, not approximate.** `IndexFlatIP` is a brute-force exact index too, so both paths return identical results — verified by a test. CI runs the full suite with FAISS absent.
 
 ## Metrics
 
@@ -179,8 +139,7 @@ CI runs the full suite with FAISS absent.
 | nDCG@k              | Rank-weighted quality across all relevant chunks.                               |
 | zero-recall queries | Which queries retrieve nothing useful. The list to actually go fix.             |
 
-`evaluate` calls the retriever once at the largest k and truncates for smaller
-cutoffs, rather than re-querying per k for identical results.
+`evaluate` calls the retriever once at the largest k and truncates for smaller cutoffs, rather than re-querying per k for identical results.
 
 ## Tests
 
@@ -188,11 +147,7 @@ cutoffs, rather than re-querying per k for identical results.
 pytest -q     # 68 tests
 ```
 
-Covers chunk-boundary and overlap behaviour, oversized-sentence hard splitting,
-zero-vector normalization, FAISS/NumPy backend agreement, duplicate-key and
-dimension-mismatch rejection, the BM25 IDF floor (without which common terms get
-negative weight and push matching documents _down_), RRF's scale invariance,
-every metric's edge cases, context budgeting, and CLI exit codes.
+Covers chunk-boundary and overlap behaviour, oversized-sentence hard splitting, zero-vector normalization, FAISS/NumPy backend agreement, duplicate-key and dimension-mismatch rejection, the BM25 IDF floor (without which common terms get negative weight and push matching documents _down_), RRF's scale invariance, every metric's edge cases, context budgeting, and CLI exit codes.
 
 ## Roadmap
 
